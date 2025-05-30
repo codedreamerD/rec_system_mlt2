@@ -595,8 +595,6 @@ Evaluasi menunjukkan bahwa sistem rekomendasi berbasis Content-Based dan Collabo
 
 ## Referensi
 
-## Referensi
-
 \[1] M. B. Kim, H. Lee, dan Y. J. Hwang, “When E-Commerce Personalization Systems Show and Tell: Investigating the Relative Persuasive Appeal of Content-Based versus Collaborative Filtering,” *Journal of Advertising*, vol. 50, no. 2, pp. 123–135, 2021. \[Online]. Tersedia: [https://doi.org/10.1080/00913367.2021.1887013](https://doi.org/10.1080/00913367.2021.1887013)
 
 \[2] I. Novitasari, D. W. Sari, dan A. Setiawan, “Improving Recommender Systems using Hybrid Techniques of Collaborative Filtering and Content-Based Filtering,” *Journal of Artificial Intelligence and Data Science*, vol. 4, no. 3, pp. 175–182, 2022. \[Online]. Tersedia: [https://doi.org/10.47738/jads.v4i3.115](https://doi.org/10.47738/jads.v4i3.115)
