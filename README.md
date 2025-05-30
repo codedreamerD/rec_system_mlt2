@@ -194,7 +194,7 @@ Untuk memahami karakteristik pengguna berdasarkan usia, kami melakukan filtering
 
 Distribusi pengguna setelah pengelompokan usia ditampilkan pada grafik berikut:
 
-![Users Variable - Distribution of Users by Age Group](repo_src/https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/usersvar-distributionofusers.png?raw=true)
+![Users Variable - Distribution of Users by Age Group](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/usersvar-distributionofusers.png?raw=true)
 
 Insight:
 
@@ -459,7 +459,7 @@ Kekurangan:
 
 ##### Output Content-Based Filtering
 
-![preview-output-cbf](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/get-recommendation.png?raw=true)
+![preview-output-cbf](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cbf-model.png?raw=true)
 
 Insight:
 
