@@ -266,15 +266,9 @@ Dataset ini siap digunakan baik untuk model Collaborative Filtering maupun Conte
   - Mengisi nilai kosong pada kolom `Book-Author` dan `Publisher` dengan 'Unknown'.
   - Karena nilai kosong pada `Image-URL-L` hanya 1 data, maka data tersebut dihapus.
   - Menghapus outlier pada kolom `Year-Of-Publication` menggunakan metode Interquartile Range (IQR).  
-    `Year-Of-Publication` setelah pembersihan:  
-    ![year-of-publication-after-cleaning](repo_src/year-publication-outlier-handle.png)
   - Pada kolom usia pengguna (`Age`), data difilter untuk rentang usia antara 5 hingga 100 tahun.
   - Setelah itu, nilai kosong pada usia diisi menggunakan nilai median.  
-    `User-Age` setelah pembersihan:  
-    ![user-age-after-cleaning](repo_src/box-plot-age-after-handling.png)
   - Membersihkan nilai 0 pada kolom `Book-Rating` karena dianggap tidak memberikan penilaian eksplisit.  
-    `Book-Rating` setelah pembersihan:  
-    ![rating-after-cleaning](repo_src/rating-books.png)
 - Menggabungkan semua data hasil pembersihan menggunakan *inner join* untuk digunakan dalam proses pemodelan.
 
 **Alasan:**
