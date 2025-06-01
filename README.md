@@ -674,7 +674,7 @@ get_book_recommendations("Rich Dad, Poor Dad: What the Rich Teach Their Kids Abo
 
 Outputnya sebagai berikut:
 
-**Input Book**
+Input Book:
 
 | Field      | Detail                                                                 |
 |------------|------------------------------------------------------------------------|
@@ -682,9 +682,7 @@ Outputnya sebagai berikut:
 | **Author**    | Robert T. Kiyosaki                                                  |
 | **Publisher** | Warner Books                                                        |
 
----
-
-**Top 5 Recommendations**
+Top 5 Recommendations:
 
 | Rank | Title                                                                 | Author             | Publisher                |
 |------|------------------------------------------------------------------------|---------------------|---------------------------|
