@@ -428,6 +428,168 @@ Insight:
 
 * Dataset akhir terdiri dari 260647 entri dengan 12 kolom yang mencakup informasi lengkap pengguna, buku, dan rating
 
+### Content Based Filtering Data
+
+#### Handling Duplicates Data
+
+```python
+cbf_data = all_data[['Book-Title', 'Book-Author', 'Publisher']].drop_duplicates()
+cbf_data = cbf_data.drop_duplicates(subset=['Book-Title', 'Book-Author'], keep='first').reset_index(drop=True)
+```
+
+Insight:
+
+* Penghapusan duplikasi dilakukan dua tahap: pertama berdasarkan seluruh kolom, kemudian khusus berdasarkan kombinasi judul dan penulis untuk memastikan setiap buku direpresentasikan satu kali dalam sistem rekomendasi.
+
+#### Merging Data
+
+```python
+cbf_data['combined_features'] = cbf_data['Book-Title'] + ' ' + cbf_data['Book-Author']
+cbf_data['combined_features'] = cbf_data['combined_features'].fillna('')
+```
+
+Insight:
+
+* Penggabungan fitur judul dan penulis membentuk satu representasi teks yang menjadi dasar ekstraksi fitur pada model Content-Based Filtering, karena informasi ini menggambarkan karakteristik unik setiap buku.
+
+#### Title Normalization
+
+```python
+cbf_data['Book-Title-Lower'] = cbf_data['Book-Title'].str.lower()
+indices = pd.Series(cbf_data.index, index=cbf_data['Book-Title-Lower']).drop_duplicates()
+
+def normalize_title(title):
+    title = title.lower()
+    title = re.sub(r'[^a-z\s]', '', title)
+    title = re.sub(r'\s+', ' ', title).strip()
+    return title
+```
+
+Insight:
+
+* Fungsi normalize_title untuk menghapus variasi tidak relevan dalam dari judul buku, sehingga meminimalkan duplikasi semantik yang dapat mengganggu akurasi sistem pencarian dan rekomendasi.
+
+#### TF-IDF Vectorization
+
+```python
+tfidf = TfidfVectorizer()
+
+tfidf_matrix = tfidf.fit_transform(cbf_data['combined_features'])
+
+vocab = tfidf.get_feature_names_out()
+
+print(f"Unique features (token): {len(vocab)}")
+print(vocab[:20])
+
+print(f"n\TF-IDF Matrix Dimension: {tfidf_matrix.shape}")
+```
+
+Insight:
+
+* Duplikasi dihapus berdasarkan kombinasi judul dan penulis untuk menjaga keunikan setiap buku
+* Hasil vektorisasi menghasilkan 71.169 token unik, menunjukkan keragaman kata dalam judul dan nama penulis
+* Beberapa token awal menunjukkan adanya karakter angka atau kode, yang dapat berasal dari judul/penulis non-alfabetik atau kode internal dalam data
+* Matriks TF-IDF memiliki dimensi (108309, 71169), menunjukkan terdapat 108309 buku unik dan 71169 fitur kata unik
+
+### Collaborative Filtering Data
+
+#### Selecting Relevant Columns
+
+```python
+cf_data = all_data[['User-ID', 'ISBN', 'Book-Rating']].copy()
+
+cf_data.info()
+```
+
+Insight:
+
+* Dataset yang digunakan terdiri dari 260647 entri, mencakup User-ID, ISBN, dan Book-Rating
+* Semua entri memiliki data lengkap tanpa nilai yang hilang
+* Tipe data terdiri dari ID pengguna dan rating dalam bentuk numerik (int64), serta ISBN sebagai identifikasi unik buku dalam bentuk object
+
+#### Encoding User and Item Identifiers
+
+```python
+user_encoder = LabelEncoder()
+item_encoder = LabelEncoder()
+
+cf_data['user'] = user_encoder.fit_transform(cf_data['User-ID'])
+cf_data['item'] = item_encoder.fit_transform(cf_data['ISBN'])
+cf_data
+```
+
+Insight:
+
+* Dataset akhir memiliki lima kolom dan 260647 baris, siap digunakan sebagai input dalam sistem rekomendasi berbasis Collaborative Filtering
+
+#### Converting Type
+
+```python
+cf_data['rating'] = cf_data['Book-Rating'].astype(float)
+```
+
+Insight:
+
+* Kolom rating telah dikonversi ke dalam tipe data float untuk mendukung komputasi matematis dalam model ML
+
+#### Prepare Final Dataset Structure
+
+```
+cf_data = cf_data[['user', 'item', 'rating']]
+cf_data
+```
+
+Insight:
+
+* Dataset CF telah dibersihkan dan disederhanakan menjadi user, item, dan rating
+* Dataset akhir terdiri dari 260647 interaksi pengguna dengan buku, siap digunakan untuk pelatihan dan evaluasi model sistem rekomendasi
+
+#### Exploring Dataset Dimensions and Rating Scale
+
+```
+num_users = cf_data['user'].nunique()
+num_items = cf_data['item'].nunique()
+
+min_rating = cf_data['rating'].min()
+max_rating = cf_data['rating'].max()
+
+print(f"Number of Users       : {num_users}")
+print(f"Number of Items       : {num_items}")
+print(f"Minimum Rating Value  : {min_rating}")
+print(f"Maximum Rating Value  : {max_rating}")
+```
+
+Insight:
+
+* Dataset mencakup hampir 40 ribu pengguna dan lebih dari 115 ribu item buku, menunjukkan cakupan interaksi yang luas
+* Skala rating bervariasi dari 1 hingga 10
+
+#### Split Dataset into Training and Testing Sets
+
+Data dibagi dengan proporsi 80% untuk pelatihan (train) dan 20% untuk pengujian (test).
+
+```python
+X = cf_data[['user', 'item']].values
+y = cf_data['rating'].apply(lambda x: (x - min_rating) / (max_rating - min_rating)).values
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,    # input: user-item pairs
+    y,    # target: normalized ratings
+    test_size=0.2,
+    random_state=42
+)
+
+print(f"X_train shape : {X_train.shape}")
+print(f"X_test shape  : {X_test.shape}")
+print(f"y_train shape : {y_train.shape}")
+print(f"y_test shape  : {y_test.shape}")
+```
+
+Insight:
+
+* Input berupa pasangan user dan item
+* Target berupa skor rating yang telah dinormalisasi ke rentang 0 hingga 1
+
 ---
 
 ## Modelling
@@ -436,30 +598,101 @@ Insight:
 
 Sistem rekomendasi ini menggunakan pendekatan Content-Based Filtering (CBF) dengan memanfaatkan kemiripan antar buku berdasarkan sinopsis atau metadata. Proses dimulai dengan mentransformasi teks menjadi representasi numerik menggunakan metode TF-IDF (Term Frequency-Inverse Document Frequency). Kemudian, cosine similarity digunakan untuk mengukur kedekatan antar vektor buku. Buku dengan nilai kemiripan tertinggi dibandingkan buku yang disukai pengguna sebelumnya akan direkomendasikan.
 
-#### Pendekatan 1: Content-Based Filtering
+```python
+def get_book_recommendations(title, k=5, max_author_ratio=0.3):
+    """
+    Return top-k diverse books based on TF-IDF cosine similarity.
+    Limits max percentage of books from the same author.
+    Excludes semantic duplicates based on normalized title + author.
+    """
+    title = title.lower()
 
-- Menghapus duplikasi data buku dan rating.
-- Menggunakan *TF-IDF vectorization* pada judul dan penulis buku.
-- Menggunakan *cosine similarity* untuk menemukan buku yang paling mirip berdasarkan konten.
-- Output: Top-5 buku yang direkomendasikan berdasarkan kemiripan konten.
+    if title not in indices:
+        print(f"Book title '{title}' not found in the dataset.")
+        return
 
-Langkah tambahan:
-- Melakukan encoding pada `User-ID` dan `ISBN` menggunakan `LabelEncoder`.
-- Mengubah `Book-Rating` dari tipe integer menjadi float.
-- Menormalisasi rating ke skala 0–1 untuk digunakan pada model jaringan saraf.
-- Membagi data menjadi data pelatihan dan pengujian dengan rasio 80:20.
+    idx = indices[title]
+    if isinstance(idx, pd.Series):
+        idx = idx.iloc[0]
 
-Kelebihan:
-- Cocok untuk pengguna baru (*cold start*)
-- Mudah diinterpretasikan karena berdasarkan fitur buku
+    if idx >= tfidf_matrix.shape[0]:
+        print(f"Index {idx} is out of range for the TF-IDF matrix.")
+        return
 
-Kekurangan:
-- Mengabaikan perilaku pengguna
-- Terbatas pada fitur item yang sudah ada
+    input_title_norm = normalize_title(cbf_data.loc[idx, 'Book-Title'])
+    input_author = cbf_data.loc[idx, 'Book-Author'].lower()
 
-##### Output Content-Based Filtering
+    sim_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
+    top_indices = sim_scores.argsort()[::-1]
 
-![cbf-model](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cbf-model.png?raw=true)
+    max_per_author = max(1, floor(k * max_author_ratio))
+    author_counts = defaultdict(int)
+    filtered = []
+
+    for i in top_indices:
+        if i == idx:
+            continue
+
+        candidate = cbf_data.iloc[i]
+        candidate_title_norm = normalize_title(candidate['Book-Title'])
+        candidate_author = candidate['Book-Author'].lower()
+
+        if candidate_title_norm == input_title_norm and candidate_author == input_author:
+            continue
+
+        if author_counts[candidate_author] >= max_per_author:
+            continue
+
+        filtered.append(i)
+        author_counts[candidate_author] += 1
+
+        if len(filtered) == k:
+            break
+
+    if not filtered:
+        print("No diverse recommendations found.")
+        return
+
+    print("Input Book:")
+    input_book = cbf_data.loc[idx]
+    print(f"Title     : {input_book['Book-Title']}")
+    print(f"Author    : {input_book['Book-Author']}")
+    print(f"Publisher : {input_book['Publisher']}")
+
+    print(f"\nTop {k} Recommendations:\n")
+
+    for i, index in enumerate(filtered, start=1):
+        rec = cbf_data.iloc[index]
+        print(f"#{i}")
+        print(f"Title     : {rec['Book-Title']}")
+        print(f"Author    : {rec['Book-Author']}")
+        print(f"Publisher : {rec['Publisher']}")
+        print("-" * 40)
+
+get_book_recommendations("Rich Dad, Poor Dad: What the Rich Teach Their Kids About Money--That the Poor and Middle Class Do Not!")
+```
+
+Outputnya sebagai berikut:
+
+**Input Book**
+
+| Field      | Detail                                                                 |
+|------------|------------------------------------------------------------------------|
+| **Title**     | Rich Dad, Poor Dad: What the Rich Teach Their Kids About Money--That the Poor and Middle Class Do Not! |
+| **Author**    | Robert T. Kiyosaki                                                  |
+| **Publisher** | Warner Books                                                        |
+
+---
+
+**Top 5 Recommendations**
+
+| Rank | Title                                                                 | Author             | Publisher                |
+|------|------------------------------------------------------------------------|---------------------|---------------------------|
+| #1   | Rich Dad's Guide to Investing: What the Rich Invest in, That the Poor and the Middle Class Do Not! | Robert T. Kiyosaki | Warner Business Books     |
+| #2   | Rich Man, Poor Man                                                    | Irwin Shaw          | Dell Publishing Company   |
+| #3   | Dad's Back (Dad and Me)                                               | Jan Ormerod         | Walker Books              |
+| #4   | The Politics of Rich and Poor: Wealth and the American Electorate in the Reagan Aftermath | Kevin Phillips      | Harper Audio              |
+| #5   | Dad                                                                    | William Wharton     | Avon Books                |
 
 Insight:
 
@@ -469,53 +702,241 @@ Insight:
 * Visualisasi cover buku ditampilkan jika URL gambar tersedia dan valid, meningkatkan pengalaman pengguna dalam mengeksplorasi rekomendasi
 * Contoh hasil: Buku *Rich Dad, Poor Dad* merekomendasikan buku-buku serupa dalam tema keuangan, keluarga, atau dengan struktur judul yang mirip namun dari penulis yang beragam
 
-#### Pendekatan 2: Collaborative Filtering (RecommenderNet)
-- Pemahaman Data
-- Persiapan Data:
-  1. Melakukan encoding pada `User-ID` dan `ISBN` menggunakan `LabelEncoder`.
-  2. Mengubah nama kolom untuk memudahkan proses modeling.
-  3. Mengubah `Book-Rating` dari integer ke float.
-- Menormalisasi rating ke skala 0–1 untuk digunakan dalam jaringan saraf.
-- Membagi data menjadi pelatihan dan pengujian (80:20).
-- Menggunakan *embedding layer* untuk pengguna dan buku.
-- Prediksi dilakukan menggunakan hasil *dot product* ditambah bias pengguna dan item, kemudian diaktifkan dengan sigmoid.
-- Output: Top-5 buku dengan prediksi rating tertinggi untuk pengguna tertentu.
+### Model Development with Collaborative Filtering (CF)
 
-Kelebihan:
-- Belajar dari pola interaksi pengguna
-- Memberikan rekomendasi yang lebih personal
+Model Collaborative Filtering dikembangkan menggunakan pendekatan berbasis embedding, dengan arsitektur RecommenderNet. Model ini mempelajari representasi laten pengguna dan item dalam ruang vektor berdimensi rendah, yang kemudian digunakan untuk memprediksi preferensi pengguna terhadap buku yang belum pernah mereka rating.
 
-Kekurangan:
-- Tidak bisa merekomendasikan untuk pengguna atau item baru
-- Membutuhkan jumlah data yang besar untuk hasil pelatihan yang baik
+#### Define RecommenderNet Architecture
 
-##### Output Collaborative Filtering
+```python
+class RecommenderNet(keras.Model):
+    def __init__(self, num_users, num_items, embedding_size=50, **kwargs):
+        super(RecommenderNet, self).__init__(**kwargs)
 
-![cf-model1](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model1.png?raw=true)
+        self.user_embedding = layers.Embedding(
+            input_dim=num_users,
+            output_dim=embedding_size,
+            embeddings_initializer='he_normal',
+            embeddings_regularizer=keras.regularizers.l2(1e-6)
+        )
+        self.user_bias = layers.Embedding(input_dim=num_users, output_dim=1)
 
-![cf-model2](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model2.png?raw=true)
+        self.item_embedding = layers.Embedding(
+            input_dim=num_items,
+            output_dim=embedding_size,
+            embeddings_initializer='he_normal',
+            embeddings_regularizer=keras.regularizers.l2(1e-6)
+        )
+        self.item_bias = layers.Embedding(input_dim=num_items, output_dim=1)
+
+    def call(self, inputs):
+        user_vector = self.user_embedding(inputs[:, 0])
+        user_bias = self.user_bias(inputs[:, 0])
+        item_vector = self.item_embedding(inputs[:, 1])
+        item_bias = self.item_bias(inputs[:, 1])
+
+        dot_user_item = tf.reduce_sum(user_vector * item_vector, axis=1, keepdims=True)
+        result = dot_user_item + user_bias + item_bias
+
+        return tf.nn.sigmoid(result)
+```
 
 Insight:
 
-**3 Buku dengan Rating ≥ 8.0 oleh User 110887**
+* Model menggunakan pendekatan embedding untuk menangkap representasi pengguna dan item.
+* Skor akhir dihitung dari dot product + bias pengguna + bias item.
 
-1. **In the Heart of the Sea: The Tragedy of the Whaleship Essex** — Nat Philbrick (Penguin Books)
-2. **Driven** — W. G. Griffiths (Warner Faith)
-3. **About Three Bricks Shy of a Load** — Mel Blount (Ballantine Books)
+#### Instantiate & Compile the Model
 
-User ini memiliki preferensi terhadap buku bertema sejarah, petualangan nyata, dan olahraga atau motivasi — bisa jadi cenderung ke non-fiksi atau novel dengan latar yang kuat.
+```python
+num_users = cf_data['user'].nunique()
+num_items = cf_data['item'].nunique()
 
-**5 Rekomendasi Buku untuk User 110887**
+model = RecommenderNet(num_users, num_items)
+model.compile(
+    loss='mse',
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+    metrics=[
+        tf.keras.metrics.RootMeanSquaredError(),
+        tf.keras.metrics.MeanAbsoluteError()
+    ]
+)
+```
 
-1. **Lonesome Dove** — Larry McMurtry (Pocket)
-2. **Free** — Paul Vincent (Upfront Publishing)
-3. **The Return of the King (The Lord of the Rings, Part 3)** — J.R.R. TOLKIEN (Del Rey)
-4. **Harry Potter and the Sorcerer's Stone (Book 1)** — J.K. Rowling (Scholastic)
-5. **My Sister's Keeper: A Novel** — Jodi Picoult (Atria)
+Insight:
 
-Rekomendasi model cenderung mengarah pada fiksi populer, termasuk fantasi dan drama keluarga. Ada perbedaan preferensi antara buku yang telah diberi rating tinggi (non-fiksi, petualangan nyata) dengan rekomendasi dari model (fiksi populer). Ini menunjukkan bahwa model kolaboratif kemungkinan besar mengandalkan kesamaan pola rating dengan user lain yang memiliki selera lebih umum.
+* Model di-*compile* dengan loss `MSE` dan metrik evaluasi `RMSE` serta `MAE`.
+* Learning rate yang digunakan adalah 0.001.
 
----
+#### Train the Model
+
+```python
+history = model.fit(
+    x=X_train,
+    y=y_train,
+    batch_size=64,
+    epochs=10,
+    verbose=1,
+    validation_data=(X_test, y_test)
+)
+```
+
+Insight:
+
+* Model converge dengan baik: terlihat dari penurunan loss, MAE, dan RMSE.
+* Overfitting belum terjadi hingga epoch ke-10.
+
+#### Generate Personalized Book Recommendations
+
+```python
+def show_high_rated_book_and_recommendation(original_user_id, top_k=5, min_rating=8.0, top_k_rating=3):
+    try:
+        encoded_user_id = user_encoder.transform([original_user_id])[0]
+    except ValueError:
+        print(f"User-ID {original_user_id} not found in training data.")
+        return pd.DataFrame()
+
+    high_rated_df = cf_data[(cf_data['user'] == encoded_user_id) & (cf_data['rating'] >= min_rating)]
+    top_rated_df = high_rated_df.sort_values(by='rating', ascending=False).head(top_k_rating)
+
+    high_rated_isbn = item_encoder.inverse_transform(top_rated_df['item'])
+
+    high_rated_books = books[books['ISBN'].isin(high_rated_isbn)][[
+        'Book-Title', 'Book-Author', 'Publisher']].drop_duplicates().reset_index(drop=True)
+
+    print(f"Top {top_k_rating} Books rated ≥ {min_rating} by user {original_user_id}:\n")
+    if high_rated_books.empty:
+        print("No high-rated books found.")
+    else:
+        for i, row in high_rated_books.iterrows():
+            print(f"#{i+1}: {row['Book-Title']} by {row['Book-Author']} ({row['Publisher']})")
+            print("-" * 40)
+
+    user_all_rated_df = cf_data[cf_data['user'] == encoded_user_id]
+    rated_items = user_all_rated_df['item'].values
+
+    all_items = np.arange(num_items)
+    unrated_items = np.setdiff1d(all_items, rated_items)
+
+    user_input = np.array([[encoded_user_id, item] for item in unrated_items])
+
+    predicted_ratings = model.predict(user_input, verbose=0).flatten()
+
+    top_indices = predicted_ratings.argsort()[-top_k:][::-1]
+
+    recommended_item_ids = unrated_items[top_indices]
+    recommended_isbn = item_encoder.inverse_transform(recommended_item_ids)
+    recommended_books = books[books['ISBN'].isin(recommended_isbn)][[
+        'Book-Title', 'Book-Author', 'Publisher']].drop_duplicates().reset_index(drop=True)
+
+    print(f"\nTop {top_k} Book Recommendations for User {original_user_id}:\n")
+    if recommended_books.empty:
+        print("No recommendations available.")
+    else:
+        for i, row in recommended_books.iterrows():
+            print(f"#{i+1}: {row['Book-Title']} by {row['Book-Author']} ({row['Publisher']})")
+            print("-" * 40)
+```
+
+Insight:
+
+* Fungsi ini menampilkan kombinasi antara top-rated books oleh user dan hasil rekomendasi model.
+* Rekomendasi berdasarkan prediksi rating tertinggi untuk item yang belum dirating user.
+
+#### Test the Function on a Random User
+
+```python
+unique_users = np.unique(X_train[:, 0])
+original_user_ids = user_encoder.inverse_transform(unique_users)
+random_user_id = random.choice(original_user_ids)
+
+print(f"Get high rated books and recommendation for user ID: {random_user_id}")
+show_high_rated_book_and_recommendation(random_user_id)
+```
+
+Outputnya sebagai berikut:
+
+Get high rated books and recommendation for user ID: 48787
+Top 3 Books rated ≥ 8.0 by user 48787:
+
+| Peringkat | Judul Buku                                          | Penulis                  | Penerbit             |
+|-----------|------------------------------------------------------|--------------------------|-----------------------|
+| #1        | *Come to Grief*                                      | Dick Francis             | Macmillan Pub Ltd     |
+| #2        | *Fat Girl Dances With Rocks (Coming of Age)*         | Susan Stinson            | Spinsters Ink Books   |
+| #3        | *Rainforest*                                         | Jenny Diski              | Penguin USA           |
+
+Top 5 Book Recommendations for User 48787:
+
+| Peringkat | Judul Buku                                                     | Penulis              | Penerbit            |
+|-----------|----------------------------------------------------------------|----------------------|----------------------|
+| #1        | *Lonesome Dove*                                                | Larry McMurtry       | Pocket               |
+| #2        | *Free*                                                         | Paul Vincent         | Upfront Publishing   |
+| #3        | *The Return of the King (The Lord of the Rings, Part 3)*       | J.R.R. Tolkien       | Del Rey              |
+| #4        | *Harry Potter and the Sorcerer's Stone (Book 1)*               | J.K. Rowling         | Scholastic           |
+| #5        | *My Sister's Keeper : A Novel (Picoult, Jodi)*                 | Jodi Picoult         | Atria                |
+
+Insight untuk User Random (48787):
+
+**Tidak Ada Buku Rating Tinggi**
+
+* User tidak memiliki rating ≥ 8.0 di data pelatihan.
+* Kemungkinan user ini masih baru (*cold start*) atau cenderung memberi rating rendah.
+
+**Rekomendasi dari Model**:
+
+1. *Lonesome Dove* — Larry McMurtry (Pocket)
+2. *Free* — Paul Vincent (Upfront Publishing)
+3. *The Return of the King (The Lord of the Rings, Part 3)* — J.R.R. Tolkien (Del Rey)
+4. *Harry Potter and the Sorcerer's Stone (Book 1)* — J.K. Rowling (Scholastic)
+5. *My Sister's Keeper* — Jodi Picoult (Atria)
+
+> Rekomendasi ini logis karena model mengandalkan tren umum dari pengguna lain dan genre populer.
+
+#### Test the Function on Specific User ID
+
+```python
+show_high_rated_book_and_recommendation(110887)
+```
+
+Outputnya sebagai berikut:
+
+Top 3 Books rated ≥ 8.0 by user 110887:
+
+| Peringkat | Judul Buku                                                                 | Penulis         | Penerbit           |
+|-----------|------------------------------------------------------------------------------|-----------------|---------------------|
+| #1        | *In the Heart of the Sea: The Tragedy of the Whaleship Essex*              | Nat Philbrick   | Penguin Books       |
+| #2        | *Driven*                                                                    | W. G. Griffiths | Warner Faith        |
+| #3        | *About Three Bricks Shy of a Load*                                          | Mel Blount      | Ballantine Books    |
+
+Top 5 Book Recommendations for User 110887:
+
+| Peringkat | Judul Buku                                                     | Penulis              | Penerbit            |
+|-----------|----------------------------------------------------------------|----------------------|----------------------|
+| #1        | *Lonesome Dove*                                                | Larry McMurtry       | Pocket               |
+| #2        | *Free*                                                         | Paul Vincent         | Upfront Publishing   |
+| #3        | *The Return of the King (The Lord of the Rings, Part 3)*       | J.R.R. Tolkien       | Del Rey              |
+| #4        | *Harry Potter and the Sorcerer's Stone (Book 1)*               | J.K. Rowling         | Scholastic           |
+| #5        | *My Sister's Keeper : A Novel (Picoult, Jodi)*                 | Jodi Picoult         | Atria                |
+
+Insight untuk User 110887:
+
+**3 Buku dengan Rating ≥ 8.0**:
+
+1. *In the Heart of the Sea* — Nat Philbrick (Penguin Books)
+2. *Driven* — W. G. Griffiths (Warner Faith)
+3. *About Three Bricks Shy of a Load* — Mel Blount (Ballantine Books)
+
+> User ini tampaknya menyukai buku bertema sejarah nyata, petualangan, dan olahraga — cenderung ke non-fiksi.
+
+**Rekomendasi Model**:
+
+1. *Lonesome Dove* — Larry McMurtry (Pocket)
+2. *Free* — Paul Vincent (Upfront Publishing)
+3. *The Return of the King* — J.R.R. Tolkien (Del Rey)
+4. *Harry Potter and the Sorcerer's Stone* — J.K. Rowling (Scholastic)
+5. *My Sister's Keeper* — Jodi Picoult (Atria)
+
+> Ada gap antara preferensi aktual (non-fiksi) dan rekomendasi model (fiksi populer), menunjukkan bahwa model kolaboratif sangat dipengaruhi oleh pola umum pengguna lain.
 
 ## Evaluation
 
@@ -527,6 +948,21 @@ Model RecommenderNet merupakan model neural network berbasis embedding yang dira
 4. Hasil prediksi dibandingkan dengan rating aktual untuk menghitung RMSE (Root Mean Square Error) sebagai metrik evaluasi akurasi.
 
 Evaluasi ini membantu mengukur keberhasilan model dalam menjawab problem statement kedua, yaitu memberikan rekomendasi yang dipersonalisasi meskipun interaksi pengguna masih terbatas.
+
+Output training selama 10 epoch:
+
+| Epoch | Loss   | MAE    | RMSE   | Val Loss | Val MAE | Val RMSE |
+|-------|--------|--------|--------|----------|---------|----------|
+| 1     | 0.0902 | 0.2608 | 0.2998 | 0.0659   | 0.2144  | 0.2538   |
+| 2     | 0.0578 | 0.1960 | 0.2358 | 0.0534   | 0.1849  | 0.2250   |
+| 3     | 0.0448 | 0.1652 | 0.2042 | 0.0472   | 0.1717  | 0.2118   |
+| 4     | 0.0376 | 0.1494 | 0.1878 | 0.0431   | 0.1637  | 0.2037   |
+| 5     | 0.0327 | 0.1381 | 0.1762 | 0.0406   | 0.1582  | 0.1984   |
+| 6     | 0.0293 | 0.1296 | 0.1676 | 0.0391   | 0.1545  | 0.1950   |
+| 7     | 0.0269 | 0.1226 | 0.1605 | 0.0382   | 0.1520  | 0.1927   |
+| 8     | 0.0248 | 0.1165 | 0.1540 | 0.0376   | 0.1503  | 0.1913   |
+| 9     | 0.0234 | 0.1119 | 0.1495 | 0.0372   | 0.1492  | 0.1903   |
+| 10    | 0.0222 | 0.1079 | 0.1456 | 0.0370   | 0.1484  | 0.1897   |
 
 ### Visualize Metrics
 
