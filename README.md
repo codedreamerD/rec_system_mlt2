@@ -333,7 +333,7 @@ Untuk mendeteksi outlier pada kolom `Year-Of-Publication`, digunakan metode **In
 
 Berikut grafik visualisasinya:
 
-![Books Variable - Handling Outliers of Year Of Publication](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/booksvar-handleoutlies.png?raw=true)
+![booksvar-handleoutliers](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/booksvar-handleoutliers.png?raw=true)
 
 Insight:
 
@@ -374,7 +374,7 @@ Insight:
 
 Grafiknya sebagai berikut:
 
-![Users Variable - Handling Outliers of User Age](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/usersvar-handleoutliers.png?raw=true)
+![usersvar-handleoutliers](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/usersvar-handleoutliers.png?raw=true)
 
 Insight:
 
@@ -400,7 +400,7 @@ Setelah penghapusan, jumlah data rating yang valid tersisa sebanyak 433671 baris
 
 Berikut grafik visualisasinya:
 
-![Users Variable - Distribution of Explicit Books Rating](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/ratingsvar-distributionofexplicitbooksrating.png?raw=true)
+![ratingsvar-distributionofexplicitbooksrating](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/ratingsvar-distributionofexplicitbooksrating.png?raw=true)
 
 #### Merging Data
 
@@ -459,7 +459,7 @@ Kekurangan:
 
 ##### Output Content-Based Filtering
 
-![preview-output-cbf](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cbf-model.png?raw=true)
+![cbf-model](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cbf-model.png?raw=true)
 
 Insight:
 
@@ -491,9 +491,9 @@ Kekurangan:
 
 ##### Output Collaborative Filtering
 
-![preview-output-cf1](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model1.png?raw=true)
+![cf-model1](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model1.png?raw=true)
 
-![preview-output-cf2](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model2.png?raw=true)
+![cf-model2](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/cf-model2.png?raw=true)
 
 Insight:
 
@@ -530,7 +530,7 @@ Evaluasi ini membantu mengukur keberhasilan model dalam menjawab problem stateme
 
 ### Visualize Metrics
 
-![Visualize Metrics](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/mse-rmse-mae.png?raw=true)
+![mse-rmse-mae](https://github.com/codedreamerD/rec_system_mlt2/blob/main/repo-dir/mse-rmse-mae.png?raw=true)
 
 Insight:
 
