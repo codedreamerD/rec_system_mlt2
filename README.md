@@ -856,16 +856,14 @@ show_high_rated_book_and_recommendation(random_user_id)
 
 Outputnya sebagai berikut:
 
-Get high rated books and recommendation for user ID: 48787
-Top 3 Books rated ≥ 8.0 by user 48787:
+Get high rated books and recommendation for user ID: 91105
+Top 3 Books rated ≥ 8.0 by user 91105:
 
-| Peringkat | Judul Buku                                          | Penulis                  | Penerbit             |
-|-----------|------------------------------------------------------|--------------------------|-----------------------|
-| #1        | *Come to Grief*                                      | Dick Francis             | Macmillan Pub Ltd     |
-| #2        | *Fat Girl Dances With Rocks (Coming of Age)*         | Susan Stinson            | Spinsters Ink Books   |
-| #3        | *Rainforest*                                         | Jenny Diski              | Penguin USA           |
+| Peringkat | Judul Buku              | Penulis     | Penerbit |
+|-----------|-------------------------|-------------|-----------|
+| #1        | *When the Devil Dances* | John Ringo  | Baen      |
 
-Top 5 Book Recommendations for User 48787:
+Top 5 Book Recommendations for User 91105:
 
 | Peringkat | Judul Buku                                                     | Penulis              | Penerbit            |
 |-----------|----------------------------------------------------------------|----------------------|----------------------|
@@ -875,22 +873,13 @@ Top 5 Book Recommendations for User 48787:
 | #4        | *Harry Potter and the Sorcerer's Stone (Book 1)*               | J.K. Rowling         | Scholastic           |
 | #5        | *My Sister's Keeper : A Novel (Picoult, Jodi)*                 | Jodi Picoult         | Atria                |
 
-Insight untuk User Random (48787):
+Insight untuk User Random (277439):
 
-**Tidak Ada Buku Rating Tinggi**
+- **Minat Genre:** User ini memberikan rating tinggi pada buku *When the Devil Dances*, sebuah novel militer sci-fi dengan elemen aksi dan strategi intens. Ini menunjukkan bahwa user kemungkinan besar menyukai **tema-tema aksi, militer, dan fiksi ilmiah** yang mendalam.
 
-* User tidak memiliki rating ≥ 8.0 di data pelatihan.
-* Kemungkinan user ini masih baru (*cold start*) atau cenderung memberi rating rendah.
+- **Rekomendasi yang Disediakan:** Meskipun rekomendasi sistem cenderung mengarah ke genre **fiksi klasik, fantasi epik, dan drama keluarga**, seperti *The Lord of the Rings* atau *My Sister’s Keeper*, ini membuka peluang eksplorasi **genre baru** yang mungkin belum banyak dijelajahi user ini sebelumnya.
 
-**Rekomendasi dari Model**:
-
-1. *Lonesome Dove* — Larry McMurtry (Pocket)
-2. *Free* — Paul Vincent (Upfront Publishing)
-3. *The Return of the King (The Lord of the Rings, Part 3)* — J.R.R. Tolkien (Del Rey)
-4. *Harry Potter and the Sorcerer's Stone (Book 1)* — J.K. Rowling (Scholastic)
-5. *My Sister's Keeper* — Jodi Picoult (Atria)
-
-> Rekomendasi ini logis karena model mengandalkan tren umum dari pengguna lain dan genre populer.
+- **Saran:** Akan lebih optimal jika sistem rekomendasi juga mempertimbangkan genre favorit user, seperti **military sci-fi atau techno-thriller**, agar rekomendasi terasa lebih personal dan relevan. Contoh tambahan yang mungkin cocok: *Old Man’s War* oleh John Scalzi atau *Halo: The Fall of Reach* oleh Eric Nylund.
 
 #### Test the Function on Specific User ID
 
